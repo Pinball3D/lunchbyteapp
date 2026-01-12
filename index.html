@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link rel="manifest" href="/manifest.json">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script type="text/javascript" src="node_modules/qrcodejs/jquery.min.js"></script>
+    <script type="text/javascript" src="node_modules/qrcodejs/qrcode.min.js"></script>
+    <script type="text/javascript" src="node_modules/qr-scanner/qr-scanner.umd.min.js"></script>
+    <script src="https://kit.fontawesome.com/44967ec108.js" crossorigin="anonymous"></script>
+    <meta name="description" content="Track your lunch waves and share with friends!">
+    <meta name="author" content="Andrew Smiley">
+    <meta name="generator" content="Andrew Smiley">
+    <meta property="og:title" content="LunchByte - Track Lunch Waves" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/favicon.ico.applemessages" />
+    <title>LunchByte</title>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+
+        :not(:has(div[v-cloak])) #loading {
+            display: none;
+        }
+
+
+        :root,
+        [data-bs-theme="light"],
+        [data-bs-theme="dark"] {
+            --bs-primary: #ffb800;
+            --bs-primary-rgb: 255, 184, 0;
+        }
+
+        .btn-primary {
+            background-color: #ffb800;
+            /* A new coral color */
+            border-color: #ffb800;
+        }
+
+        .btn-primary:hover {
+            background-color: #e6a501cc;
+            /* Darker shade on hover */
+            border-color: #e6a501cc;
+        }
+        .btn-primary:active {
+            background-color: #ca9203cc !important;
+            /* Even darker shade on active */
+            border-color: #ca9203cc !important;
+        }
+
+        #qrcode {
+            width: 200px;
+            height: 200px;
+            margin-left: 50%;
+            transform: translateX(-50%);
+            aspect-ratio: 1;
+        }
+
+        #copyShareLink {
+            display: block;
+            margin-left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+        }
+
+        .onboard-carousel {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            perspective: 1000px;
+        }
+
+        .onboard-card {
+            width: 260px;
+            transition:
+                transform 0.95s ease,
+                filter 0.95s ease;
+        }
+
+        .onboard-card.center {
+            transform: scale(1);
+            opacity: 1;
+            filter: none;
+            z-index: 2;
+        }
+
+        .onboard-card.side {
+            transform: scale(0.9);
+            filter: blur(1px);
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            .onboard-card.side {
+                display: none;
+            }
+        }
+
+        .onboard-card.side.hidden {
+            visibility: hidden;
+        }
+
+        .onboard-leave-active {
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body data-bs-theme="dark">
+    <div id="loading">LOADING</div>
+    <div v-cloak id="app" class="container">
+        <!--<h1 class="mt-5 d-flex justify-content-center">LunchByte</h1>-->
+        <div id="lunchWaveAppContent">
+            <h1 class="mt-5 text-wrap me-2">Good Morning,</br>
+                Today is a <div id="headerDayText" class="text text-nowrap text-primary d-inline">{{ letterDay }}</div>
+                day. <div class="text-nowrap d-inline">You have wave <div id="headerWaveText"
+                        class="text text-primary d-inline">{{
+                        user.wave(letterDay) }}</div>
+                </div>
+                <!-- push button all the way to the right-->
+                <button data-bs-toggle="modal" data-bs-target="#settingsModal"
+                    class="float-end btn btn-md btn-secondary">
+                    <i class="fa fa-gear"></i> Settings
+                </button>
+            </h1>
+            <p>Here is your lunch wave for today, aswell as your friends schedules!</p>
+            <!-- button to share your schedule toggles modal-->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
+                Share Your Schedule
+            </button>
+            <!-- settings modal -->
+            <div class="modal fade" id="settingsModal" aria-labelledby="settingsModalLabel">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="settingsModalLabel">Settings</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="userNameInput" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="userNameInput" v-model="user.name">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button ref="deleteDataButton" @click="deleteData" class="me-auto btn btn-danger">Delete
+                                Data</button>
+
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- modal containing qrcode-->
+            <div class="modal fade" id="shareModal" aria-labelledby="shareModalLabel" data-bs-theme="light">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="shareModalLabel">Share Your Schedule!</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="qrcode"></div>
+                            <button class="btn btn-primary" id="copyShareLink"
+                                @click="copyLink">{{copyLinkText}}</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="ms-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFriendModal">
+                Add a Friend!
+            </button>
+            <!-- modal containing qrcode scanner-->
+            <div class="modal fade" id="addFriendModal" tabindex="-1" aria-labelledby="addFriendModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="addFriendModalLabel">Add a Friend!</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <h5>Scan a Friend's QR Code from LunchByte!</h5>
+                            <div id="qrScanner" style="width: 100% !important; border-radius: 10px;"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    Today - Wave {{ user.wave(letterDay) }}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Friends In Your Wave</h5>
+                    <p class="card-text" id="lunchSharedWith">
+                        {{ function() {
+                        let sharedFriends = user.friends.filter(friend => friend.wave(letterDay) ==
+                        user.wave(letterDay));
+                        if (user.friends.length == 0) {
+                        return "You have not added any friends yet. Click the button above to add some!";
+                        } else if (sharedFriends.length == 0) {
+                        return "No friends share your lunch wave today.";
+                        } else {
+                        return sharedFriends.map(friend => friend.name).join(", ");
+                        }
+                        }() }}
+                    </p>
+                </div>
+            </div>
+            <div class="d-grid row-gap-3 mt-3" id="friendsList">
+                <div class="card friendCard" v-for="(friend, index) in user.friends" :key="index">
+                    <div class="card-header">
+                        <div class="d-inline friendName">
+                            {{ friend.name }}
+                        </div>
+                        - Wave
+                        <div class="d-inline me-3">
+                            <div class="d-inline friendWaveText">{{ friend.wave(letterDay) }}</div>
+                            <div class="d-inline friendSharedText" v-if="friend.wave(letterDay) == user.wave(letterDay)"
+                                hidden> - You share lunch today!</div>
+                        </div>
+                        <button type="button" class="btn btn-primary friendScheduleButton"
+                            data-bs-toggle="collapse" :data-bs-target="'#friendScheduleindex'+index">
+                            View Schedule
+                        </button>
+                    </div>
+                    <div :id="'friendScheduleindex'+index" class="collapse">
+                        <div class="card-body">
+                            <h5 class="card-title">Weekly Schedule</h5>
+                            <div class="card-text">
+                                <div class="d-inline me-2" v-for="day in ['A','B','C','D','E','F','G','H']">
+                                    <strong class="d-inline">{{ day }}: </strong> Wave {{ friend.wave(day) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="friendRemoveButton btn btn-danger" type="button"
+                                @click="user.removeFriend(index)">Remove Friend</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- end template -->
+            </div>
+        </div>
+    </div>
+    <div v-cloak id="onboarding" class="container">
+        <form id="onboardForm" class="mx-auto w-75 d-flex justify-content-center flex-column" hidden>
+            <h1 class="mt-5 d-flex justify-content-center">Welcome to LunchByte!</h1>
+            <div class="container my-5">
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="fs-1 mb-3">📅</div>
+                                <h5 class="card-title">Track Your Schedule</h5>
+                                <p class="card-text">
+                                    Easily keep track of your lunch wave schedule.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="fs-1 mb-3">👥</div>
+                                <h5 class="card-title">Share with Friends</h5>
+                                <p class="card-text">
+                                    Share your lunch wave schedule with friends.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm text-center">
+                            <div class="card-body">
+                                <div class="fs-1 mb-3">⏰</div>
+                                <h5 class="card-title">Match Lunch Waves</h5>
+                                <p class="card-text">
+                                    See which friends share your lunch wave each day.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <p class="d-flex justify-content-center">Let's set up your lunch wave schedule. Select your lunch wave for
+                each day below. {{onboardDay}}</p>
+            <h3 class="d-flex justify-content-center">
+                <div v-if="onboardDay != -1">Select Lunch Wave </div>
+                <div v-if="onboardDay == -1">Enter Your Name</div>
+            </h3>
+            <!--
+            <div v-if="onboardDay != -1" class="d-flex justify-content-center btn-group" role="group"
+                id="onboardScheduleCheckboxDiv">
+                <input type="radio" class="btn-check" name="btnradio" id="wave1" autocomplete="off"
+                    v-model="user.schedule['ABCDEFGH'[onboardDay]]" @click="schedule['ABCDEFGH'[onboardDay]]=1"
+                    :value="1">
+                <label class="btn btn-outline-primary" for="wave1">Wave 1</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="wave2" autocomplete="off"
+                    v-model="user.schedule['ABCDEFGH'[onboardDay]]" @click="schedule['ABCDEFGH'[onboardDay]]=2"
+                    :value="2">
+                <label class="btn btn-outline-primary" for="wave2">Wave 2</label>
+
+                <input type="radio" class="btn-check" name="btnradio" id="wave3" autocomplete="off"
+                    v-model="user.schedule['ABCDEFGH'[onboardDay]]" @click="schedule['ABCDEFGH'[onboardDay]]=3"
+                    :value="3">
+                <label class="btn btn-outline-primary" for="wave3">Wave 3</label>
+            </div>
+            -->
+            <transition-group name="onboard" tag="div" class="onboard-carousel" v-if="onboardDay != -1">
+                <div v-for="offset in [-1, 0, 1]" :key="onboardDay + offset" class="onboard-card"
+                    :class="cardClass(onboardDay + offset)">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <h5 class="mb-2">
+                                <div id="onboardDayLabel" class="text text-primary d-inline">
+                                    {{'ABCDEFGH'[onboardDay+offset]}}</div> day
+                            </h5>
+
+                            <div v-if-d="offset === 0" class="btn-group w-100">
+                                <div v-for="wave in [1,2,3]" :key="wave">
+                                    <input type="radio" class="btn btn-outline-primary btn-check"
+                                        @click="user.schedule['ABCDEFGH'[onboardDay]] = wave" :value="wave"
+                                        v-model="user.schedule['ABCDEFGH'[onboardDay+offset]]" :id="'wave'+wave">
+                                    <label class="btn btn-outline-primary" :for="'wave'+wave">Wave {{wave}}</label>
+                                </div>
+                            </div>
+                            <!--<div v-else class="text-muted small">
+                                {{ getWavePreview(onboardDay + offset) }}
+                            </div>-->
+                        </div>
+                    </div>
+                </div>
+            </transition-group>
+            <div v-if="onboardDay == -1" class="mb-3" id="onboardNameContainer">
+                <label for="basic-url" class="form-label">Your name</label>
+                <input v-model="user.name" type="text" class="form-control" id="onboardName"
+                    aria-describedby="onboardNameDesc">
+                <div class="form-text" id="onboardNameDesc">We'll use this later when you share your schedule.</div>
+            </div>
+            <div class="mt-3 d-block d-flex justify-content-center">
+                <button id="onboardBackBtn" @click="onboardDay--" type="button" class="btn btn-secondary"
+                    :disabled="onboardDay==0 || onboardDay == -1">Back</button>
+                <div class="w-25"></div>
+                <button id="onboardNextBtn" @click="nextDay" type="button" class="btn btn-primary">
+                    <div v-if="onboardDay != -1">Next</div>
+                    <div v-else>Done</div>
+                </button>
+            </div>
+        </form>
+    </div>
+    <footer class="text-center mt-5 mb-3">
+        <small>&copy; 2025 LunchByte V0.2</small>
+    </footer>
+    <script src="index.js"></script>
+    <link href="" rel="stylesheet">
+    <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

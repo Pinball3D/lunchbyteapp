@@ -1,0 +1,24 @@
+{
+	"name": "LunchByte",
+	"start_url": "https://tracker-office-heavily-says.trycloudflare.com",
+	"theme_color": "#ffb800",
+	"display": "standalone",
+	"icons": [
+		{
+			"src": "web/icon-192.png",
+			"type": "image/png",
+			"sizes": "192x192",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "web/icon-192.png",
+			"type": "image/png",
+			"sizes": "512x512",
+			"purpose": "any maskable"
+		}
+	],
+	"background_color": "#ffde00",
+	"orientation": "any",
+	"dir": "auto",
+	"lang": "en-US"
+}
