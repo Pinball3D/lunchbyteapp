@@ -18,7 +18,7 @@
     <meta name="generator" content="Andrew Smiley">
     <meta property="og:title" content="LunchByte - Track Lunch Waves" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/favicon.ico.applemessages" />
+    <meta property="og:image" content="/favicon.ico" />
     <title>LunchByte</title>
     <style>
         [v-cloak] {
@@ -27,31 +27,6 @@
 
         :not(:has(div[v-cloak])) #loading {
             display: none;
-        }
-
-
-        :root,
-        [data-bs-theme="light"],
-        [data-bs-theme="dark"] {
-            --bs-primary: #ffb800;
-            --bs-primary-rgb: 255, 184, 0;
-        }
-
-        .btn-primary {
-            background-color: #ffb800;
-            /* A new coral color */
-            border-color: #ffb800;
-        }
-
-        .btn-primary:hover {
-            background-color: #e6a501cc;
-            /* Darker shade on hover */
-            border-color: #e6a501cc;
-        }
-        .btn-primary:active {
-            background-color: #ca9203cc !important;
-            /* Even darker shade on active */
-            border-color: #ca9203cc !important;
         }
 
         #qrcode {
@@ -96,11 +71,7 @@
             pointer-events: none;
         }
 
-        @media (max-width: 600px) {
-            .onboard-card.side {
-                display: none;
-            }
-        }
+        
 
         .onboard-card.side.hidden {
             visibility: hidden;
@@ -108,6 +79,16 @@
 
         .onboard-leave-active {
             position: absolute;
+        }
+
+        .card>.card-header {
+            border-bottom: none;
+        }
+
+        @media (max-width: 600px) {
+            .onboard-card.side {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -123,18 +104,27 @@
                         class="text text-primary d-inline">{{
                         user.wave(letterDay) }}</div>
                 </div>
-                <!-- push button all the way to the right-->
-                <button data-bs-toggle="modal" data-bs-target="#settingsModal"
-                    class="float-end btn btn-md btn-secondary">
-                    <i class="fa fa-gear"></i> Settings
-                </button>
             </h1>
             <p>Here is your lunch wave for today, aswell as your friends schedules!</p>
+            <!-- button toolbar -->
+            <div class="d-flex flex-wrap">
+                <button type="button" class="btn btn-primary me-2 mb-3" data-bs-toggle="modal"
+                    data-bs-target="#shareModal">
+                    Share Your Schedule
+                </button>
+                <button type="button" class="me-auto btn btn-primary mb-3" data-bs-toggle="modal"
+                    data-bs-target="#addFriendModal">
+                    Add a Friend!
+                </button>
+                <button data-bs-toggle="modal" data-bs-target="#settingsModal" class="btn btn-md btn-secondary mb-3">
+                    <i class="fa fa-gear"></i><span class="d-none d-sm-inline ms-1">Settings</span>
+                </button>
+            </div>
             <!-- button to share your schedule toggles modal-->
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
-                Share Your Schedule
-            </button>
-            <!-- settings modal -->
+
+
+            <!-- settings popup -->
+
             <div class="modal fade" id="settingsModal" aria-labelledby="settingsModalLabel">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -176,9 +166,6 @@
                     </div>
                 </div>
             </div>
-            <button type="button" class="ms-2 btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFriendModal">
-                Add a Friend!
-            </button>
             <!-- modal containing qrcode scanner-->
             <div class="modal fade" id="addFriendModal" tabindex="-1" aria-labelledby="addFriendModalLabel"
                 aria-hidden="true">
@@ -198,7 +185,7 @@
                     </div>
                 </div>
             </div>
-            <div class="card mt-3">
+            <div class="card mb-3">
                 <div class="card-header">
                     Today - Wave {{ user.wave(letterDay) }}
                 </div>
@@ -219,20 +206,22 @@
                     </p>
                 </div>
             </div>
-            <div class="d-grid row-gap-3 mt-3" id="friendsList">
+            <div class="d-grid row-gap-3 mb-3" id="friendsList">
                 <div class="card friendCard" v-for="(friend, index) in user.friends" :key="index">
                     <div class="card-header">
-                        <div class="d-inline friendName">
+                        <div class="d-inline friendName me-3">
                             {{ friend.name }}
-                        </div>
-                        - Wave
-                        <div class="d-inline me-3">
-                            <div class="d-inline friendWaveText">{{ friend.wave(letterDay) }}</div>
+                            <span class="d-none d-sm-inline">
+                                - Wave
+                                <div class="d-inline friendWaveText">{{ friend.wave(letterDay) }}</div>
+                            </span>
                             <div class="d-inline friendSharedText" v-if="friend.wave(letterDay) == user.wave(letterDay)"
-                                hidden> - You share lunch today!</div>
+                                hidden> - You share lunch
+                                today!</div>
                         </div>
-                        <button type="button" class="btn btn-primary friendScheduleButton"
-                            data-bs-toggle="collapse" :data-bs-target="'#friendScheduleindex'+index">
+
+                        <button type="button" class="btn btn-primary friendScheduleButton" data-bs-toggle="collapse"
+                            :data-bs-target="'#friendScheduleindex'+index">
                             View Schedule
                         </button>
                     </div>
@@ -296,31 +285,13 @@
 
                 </div>
             </div>
-            <p class="d-flex justify-content-center">Let's set up your lunch wave schedule. Select your lunch wave for
+            <p v-if="onboardDay == -1" class="d-flex justify-content-center">Let's set up your lunch wave schedule. Select your lunch wave for
                 each day below. {{onboardDay}}</p>
             <h3 class="d-flex justify-content-center">
                 <div v-if="onboardDay != -1">Select Lunch Wave </div>
                 <div v-if="onboardDay == -1">Enter Your Name</div>
             </h3>
-            <!--
-            <div v-if="onboardDay != -1" class="d-flex justify-content-center btn-group" role="group"
-                id="onboardScheduleCheckboxDiv">
-                <input type="radio" class="btn-check" name="btnradio" id="wave1" autocomplete="off"
-                    v-model="user.schedule['ABCDEFGH'[onboardDay]]" @click="schedule['ABCDEFGH'[onboardDay]]=1"
-                    :value="1">
-                <label class="btn btn-outline-primary" for="wave1">Wave 1</label>
 
-                <input type="radio" class="btn-check" name="btnradio" id="wave2" autocomplete="off"
-                    v-model="user.schedule['ABCDEFGH'[onboardDay]]" @click="schedule['ABCDEFGH'[onboardDay]]=2"
-                    :value="2">
-                <label class="btn btn-outline-primary" for="wave2">Wave 2</label>
-
-                <input type="radio" class="btn-check" name="btnradio" id="wave3" autocomplete="off"
-                    v-model="user.schedule['ABCDEFGH'[onboardDay]]" @click="schedule['ABCDEFGH'[onboardDay]]=3"
-                    :value="3">
-                <label class="btn btn-outline-primary" for="wave3">Wave 3</label>
-            </div>
-            -->
             <transition-group name="onboard" tag="div" class="onboard-carousel" v-if="onboardDay != -1">
                 <div v-for="offset in [-1, 0, 1]" :key="onboardDay + offset" class="onboard-card"
                     :class="cardClass(onboardDay + offset)">
@@ -339,9 +310,6 @@
                                     <label class="btn btn-outline-primary" :for="'wave'+wave">Wave {{wave}}</label>
                                 </div>
                             </div>
-                            <!--<div v-else class="text-muted small">
-                                {{ getWavePreview(onboardDay + offset) }}
-                            </div>-->
                         </div>
                     </div>
                 </div>
@@ -367,7 +335,6 @@
         <small>&copy; 2025 LunchByte V0.2</small>
     </footer>
     <script src="index.js"></script>
-    <link href="" rel="stylesheet">
     <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
