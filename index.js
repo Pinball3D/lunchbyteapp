@@ -85,14 +85,35 @@ var mainApp = createApp({
     },
     mounted() {
         var vm = this;
-        this.qrScanner = new Html5Qrcode("qrScanner");
+        //this.qrScanner = new Html5Qrcode("qrScanner");
         //this.qrScanner = new QrScanner(
-         //   document.getElementById('qrScanner2'),
+        //   document.getElementById('qrScanner2'),
         //    result => this.scanCode(result.data),
         //    { /* your options or returnDetailedScanResult: true if you're not specifying any other options */ },
         //);
         var modal = document.querySelector('#addFriendModal')
-        modal.addEventListener('shown.bs.modal', () => {
+        modal.addEventListener('shown.bs.modal', async () => {
+            const video = document.getElementById("qrScanner2");
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+            video.srcObject = stream;
+            await video.play();
+
+            const detector = new BarcodeDetector({ formats: ["qr_code"] });
+
+            async function scan() {
+                const codes = await detector.detect(video);
+                if (codes.length) {
+                    console.log("INSTANT scan:", codes[0].rawValue);
+                    return;
+                }
+                requestAnimationFrame(scan);
+            }
+
+            scan();
+            /*
             this.qrScanner.start(
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -110,7 +131,7 @@ var mainApp = createApp({
                 //    this.user.addFriend(result);
                 //},
                 (errorMessage) => { })
-                .catch((err) => { });
+                .catch((err) => { });*/
             //this.qrScanner.render(this.scanCode);
             //this.qrScanner.start();
         });
