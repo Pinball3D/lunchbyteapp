@@ -85,18 +85,18 @@ var mainApp = createApp({
     },
     mounted() {
         var vm = this;
-        //this.qrScanner = new Html5Qrcode("qrScanner");
-        this.qrScanner = new QrScanner(
-            document.getElementById('qrScanner2'),
-            result => this.scanCode(result.data),
-            { /* your options or returnDetailedScanResult: true if you're not specifying any other options */ },
-        );
+        this.qrScanner = new Html5Qrcode("qrScanner");
+        //this.qrScanner = new QrScanner(
+         //   document.getElementById('qrScanner2'),
+        //    result => this.scanCode(result.data),
+        //    { /* your options or returnDetailedScanResult: true if you're not specifying any other options */ },
+        //);
         var modal = document.querySelector('#addFriendModal')
         modal.addEventListener('shown.bs.modal', () => {
-            this.qrScanner.start();
-             //   { facingMode: "environment" },
-             //   { fps: 10, qrbox: { width: 250, height: 250 } },
-             //   (decodedText, decodedResult) => { $('#addFriendModal').modal('hide'); vm.user.addFriend(decodedText); },
+            this.qrScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText, decodedResult) => { $('#addFriendModal').modal('hide'); vm.user.addFriend(decodedText); },
                 //(decodedText, decodedResult) => {
                 //    console.log("test123")
                 //    console.log(`Code scanned = ${decodedText}`, decodedResult);
@@ -109,8 +109,8 @@ var mainApp = createApp({
                 //    $('#addFriendModal').modal('hide');
                 //    this.user.addFriend(result);
                 //},
-             //   (errorMessage) => { })
-             //   .catch((err) => { });
+                (errorMessage) => { })
+                .catch((err) => { });
             //this.qrScanner.render(this.scanCode);
             //this.qrScanner.start();
         });
