@@ -1,3 +1,5 @@
+import QrScanner from "https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js";
+
 //classes
 class Friend {
     constructor(data) {
@@ -31,7 +33,7 @@ class User extends Friend {
 
 const { createApp, watchEffect } = Vue
 
-mainApp = createApp({
+var mainApp = createApp({
     data() {
         return {
             letterDay: 'A',
@@ -83,24 +85,18 @@ mainApp = createApp({
     },
     mounted() {
         var vm = this;
-        //Html5Qrcode.getCameras().then(devices => {
-        //   if (devices && devices.length) {
-        //       var cameraId = devices[0].id;
-        this.qrScanner = new Html5Qrcode("qrScanner");
-        //       this.cameraId = cameraId;
-        //   }
-        //}).catch(err => { });
-        //this.qrScanner = new QrScanner(
-        //    document.getElementById('qrScanner'),
-        //    result => console.log(result),
-        //    { returnDetailedScanResult: true },
-        //);
-        modal = document.querySelector('#addFriendModal')
+        //this.qrScanner = new Html5Qrcode("qrScanner");
+        this.qrScanner = new QrScanner(
+            document.getElementById('qrScanner2'),
+            result => this.scanCode(result.data),
+            { /* your options or returnDetailedScanResult: true if you're not specifying any other options */ },
+        );
+        var modal = document.querySelector('#addFriendModal')
         modal.addEventListener('shown.bs.modal', () => {
-            this.qrScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText, decodedResult) => {$('#addFriendModal').modal('hide');vm.user.addFriend(decodedText); },
+            this.qrScanner.start();
+             //   { facingMode: "environment" },
+             //   { fps: 10, qrbox: { width: 250, height: 250 } },
+             //   (decodedText, decodedResult) => { $('#addFriendModal').modal('hide'); vm.user.addFriend(decodedText); },
                 //(decodedText, decodedResult) => {
                 //    console.log("test123")
                 //    console.log(`Code scanned = ${decodedText}`, decodedResult);
@@ -113,8 +109,8 @@ mainApp = createApp({
                 //    $('#addFriendModal').modal('hide');
                 //    this.user.addFriend(result);
                 //},
-                (errorMessage) => { })
-                .catch((err) => { });
+             //   (errorMessage) => { })
+             //   .catch((err) => { });
             //this.qrScanner.render(this.scanCode);
             //this.qrScanner.start();
         });
@@ -126,7 +122,7 @@ mainApp = createApp({
             height: 200
         }).makeCode(this.user.share());
     },
-    scanCode(result, decodedResult) {
+    scanCode(result) {
         console.log("Scanned code: " + result);
         if (!result.startsWith(window.location.href + "?share=true")) {
             alert("Scanned QR code is not a valid Lunch Wave schedule!");
