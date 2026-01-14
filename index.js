@@ -36,7 +36,8 @@ var mainApp = createApp({
             letterDay: 'A',
             qrScannerStream: null,
             copyLinkText: "Copy Link",
-            user: new User(JSON.parse(localStorage.getItem('user')))
+            user: new User(JSON.parse(localStorage.getItem('user'))),
+            intervalID: null
 
         }
     },
@@ -91,7 +92,6 @@ var mainApp = createApp({
         });
     },
     mounted() {
-        var vm = this;
         var modal = document.querySelector('#addFriendModal')
         modal.addEventListener('shown.bs.modal', async () => {
             const video = document.getElementById("qrScanner2");
@@ -102,24 +102,24 @@ var mainApp = createApp({
             await video.play();
 
             const detector = new BarcodeDetector({ formats: ["qr_code"] });
-            let scanning = true;
             async function scanLoop() {
-                if (!scanning) return;
+                console.log("Scanning...");
                 const codes = await detector.detect(video);
                 if (codes.length) {
-                    console.log(vm)
-                    if (vm.scanCode(codes[0].rawValue)) {
+                    console.log(this);
+                    if (this.scanCode(codes[0].rawValue)) {
                         console.log("INSTANT scan:", codes[0].rawValue);
                         return;
                     }
                 }
             }
-            setInterval(scanLoop, 500);
+            this.intervalID = setInterval(scanLoop, 500);
         });
         modal.addEventListener('hidden.bs.modal', () => {
             if (this.qrScannerStream) {
                 this.qrScannerStream.getTracks().forEach(track => track.stop());
             }
+            clearInterval(this.intervalID);
         });
         new QRCode(document.getElementById("qrcode"), {
             width: 200,
