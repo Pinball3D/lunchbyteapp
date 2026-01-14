@@ -1,4 +1,5 @@
 const { createApp, watchEffect } = Vue
+document.getElementById("versionText").innerText = "0.4";
 //classes
 class Friend {
     constructor(data) {
