@@ -60,7 +60,17 @@ var mainApp = createApp({
                 this.$refs.deleteDataButton.confirmed = true;
             }
         },
-        scanCode(result) { }
+        scanCode(result) { },
+        isMobile() {
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                return true
+            } else {
+                return false
+            }
+        },
+        addFriendFromLink() {
+            this.user.addFriend(document.getElementById("friendLinkInput").value);
+        }
     },
     created() {
         watchEffect(() => {
@@ -85,38 +95,40 @@ var mainApp = createApp({
     mounted() {
         var vm = this;
         var modal = document.querySelector('#addFriendModal')
-        modal.addEventListener('shown.bs.modal', async () => {
-            const video = document.getElementById("qrScanner2");
-            this.qrScannerStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
-            video.srcObject = this.qrScannerStream;
-            await video.play();
+        if (!this.isMobile()) {
+            modal.addEventListener('shown.bs.modal', async () => {
+                const video = document.getElementById("qrScanner2");
+                this.qrScannerStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" }
+                });
+                video.srcObject = this.qrScannerStream;
+                await video.play();
 
-            const detector = new BarcodeDetector({ formats: ["qr_code"] });
-            async function scanLoop() {
-                console.log("Scanning...");
-                const codes = await detector.detect(video);
-                if (codes.length) {
-                    var result = codes[0].rawValue;
-                    console.log("INSTANT scan:", codes[0].rawValue);
-                    if (!result.startsWith(window.location.href + "?share=true")) {
-                        alert("Scanned QR code is not a valid LunchByte schedule!");
+                const detector = new BarcodeDetector({ formats: ["qr_code"] });
+                async function scanLoop() {
+                    console.log("Scanning...");
+                    const codes = await detector.detect(video);
+                    if (codes.length) {
+                        var result = codes[0].rawValue;
+                        console.log("INSTANT scan:", codes[0].rawValue);
+                        if (!result.startsWith(window.location.href + "?share=true")) {
+                            alert("Scanned QR code is not a valid LunchByte schedule!");
+                            return;
+                        }
+                        $('#addFriendModal').modal('hide');
+                        vm.user.addFriend(result);
                         return;
                     }
-                    $('#addFriendModal').modal('hide');
-                    vm.user.addFriend(result);
-                    return;
                 }
-            }
-            this.intervalID = setInterval(scanLoop, 500);
-        });
-        modal.addEventListener('hidden.bs.modal', () => {
-            if (this.qrScannerStream) {
-                this.qrScannerStream.getTracks().forEach(track => track.stop());
-            }
-            clearInterval(this.intervalID);
-        });
+                this.intervalID = setInterval(scanLoop, 500);
+            });
+            modal.addEventListener('hidden.bs.modal', () => {
+                if (this.qrScannerStream) {
+                    this.qrScannerStream.getTracks().forEach(track => track.stop());
+                }
+                clearInterval(this.intervalID);
+            });
+        }
         new QRCode(document.getElementById("qrcode"), {
             width: 200,
             height: 200

@@ -175,8 +175,22 @@
                         </div>
                         <div class="modal-body text-center">
                             <h5>Scan a Friend's QR Code from LunchByte!</h5>
-                            <div id="qrScanner" style="width: 100% !important; border-radius: 10px;"></div>
-                            <video id="qrScanner2" style="width: 100% !important; border-radius: 10px;"></video>
+                            <div v-if="!isMobile()">
+                                <div id="qrScanner" style="width: 100% !important; border-radius: 10px;"></div>
+                                <video id="qrScanner2" style="width: 100% !important; border-radius: 10px;"></video>
+                            </div>
+                            <div v-else>
+                                <p>Please Open Your Camera App and Scan the QR Code There</p>
+                                <span>~~ OR ~~</span>
+                                <!-- enter link -->
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" placeholder="Enter Friend's Link"
+                                        aria-label="Friend's Link" aria-describedby="addFriendLinkButton"
+                                        v-model="friendLinkInput">
+                                    <button class="btn btn-primary" type="button" id="addFriendLinkButton"
+                                        @click="addFriendFromLink()">Add Friend</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
