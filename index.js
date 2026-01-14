@@ -1,5 +1,4 @@
-import QrScanner from "https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js";
-
+const { createApp, watchEffect } = Vue
 //classes
 class Friend {
     constructor(data) {
@@ -31,16 +30,13 @@ class User extends Friend {
     }
 }
 
-const { createApp, watchEffect } = Vue
-
 var mainApp = createApp({
     data() {
         return {
             letterDay: 'A',
-            qrScanner: null,
+            qrScannerStream: null,
             copyLinkText: "Copy Link",
-            user: new User(JSON.parse(localStorage.getItem('user'))),
-            cameraId: null,
+            user: new User(JSON.parse(localStorage.getItem('user')))
 
         }
     },
@@ -61,6 +57,17 @@ var mainApp = createApp({
                 this.$refs.deleteDataButton.innerText = "Are you sure?";
                 this.$refs.deleteDataButton.confirmed = true;
             }
+        },
+        scanCode(result) {
+            console.log("Scanned code: " + result);
+            if (!result.startsWith(window.location.href + "?share=true")) {
+                alert("Scanned QR code is not a valid LunchByte schedule!");
+                return false;
+            }
+            $('#addFriendModal').modal('hide');
+            this.user.addFriend(result);
+            return true;
+
         }
     },
     created() {
@@ -85,74 +92,41 @@ var mainApp = createApp({
     },
     mounted() {
         var vm = this;
-        //this.qrScanner = new Html5Qrcode("qrScanner");
-        //this.qrScanner = new QrScanner(
-        //   document.getElementById('qrScanner2'),
-        //    result => this.scanCode(result.data),
-        //    { /* your options or returnDetailedScanResult: true if you're not specifying any other options */ },
-        //);
         var modal = document.querySelector('#addFriendModal')
         modal.addEventListener('shown.bs.modal', async () => {
             const video = document.getElementById("qrScanner2");
-
-            const stream = await navigator.mediaDevices.getUserMedia({
+            this.qrScannerStream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: "environment" }
             });
-            video.srcObject = stream;
+            video.srcObject = this.qrScannerStream;
             await video.play();
 
             const detector = new BarcodeDetector({ formats: ["qr_code"] });
-
-            async function scan() {
+            let scanning = true;
+            async function scanLoop() {
+                if (!scanning) return;
                 const codes = await detector.detect(video);
                 if (codes.length) {
-                    console.log("INSTANT scan:", codes[0].rawValue);
-                    return;
+                    console.log(vm)
+                    if (vm.scanCode(codes[0].rawValue)) {
+                        console.log("INSTANT scan:", codes[0].rawValue);
+                        return;
+                    }
                 }
-                requestAnimationFrame(scan);
+                requestAnimationFrame(scanLoop);
             }
-
-            scan();
-            /*
-            this.qrScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText, decodedResult) => { $('#addFriendModal').modal('hide'); vm.user.addFriend(decodedText); },
-                //(decodedText, decodedResult) => {
-                //    console.log("test123")
-                //    console.log(`Code scanned = ${decodedText}`, decodedResult);
-                //    console.log("Scanned code: " + result);
-                //    if (!result.startsWith(window.location.href + "?share=true")) {
-                //        alert("Scanned QR code is not a valid Lunch Wave schedule!");
-                //        return;
-                //    }
-                //    this.qrScanner.stop();
-                //    $('#addFriendModal').modal('hide');
-                //    this.user.addFriend(result);
-                //},
-                (errorMessage) => { })
-                .catch((err) => { });*/
-            //this.qrScanner.render(this.scanCode);
-            //this.qrScanner.start();
+            scanLoop();
         });
         modal.addEventListener('hidden.bs.modal', () => {
-            this.qrScanner.stop();
+            if (this.qrScannerStream) {
+                this.qrScannerStream.getTracks().forEach(track => track.stop());
+            }
         });
         new QRCode(document.getElementById("qrcode"), {
             width: 200,
             height: 200
         }).makeCode(this.user.share());
     },
-    scanCode(result) {
-        console.log("Scanned code: " + result);
-        if (!result.startsWith(window.location.href + "?share=true")) {
-            alert("Scanned QR code is not a valid Lunch Wave schedule!");
-            return;
-        }
-        $('#addFriendModal').modal('hide');
-        this.user.addFriend(result);
-
-    }
 
 })
 if (window.localStorage.getItem('onboarded') == 'true') {
