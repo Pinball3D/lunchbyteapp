@@ -113,9 +113,8 @@ var mainApp = createApp({
                         return;
                     }
                 }
-                requestAnimationFrame(scanLoop);
             }
-            scanLoop();
+            setInterval(scanLoop, 500);
         });
         modal.addEventListener('hidden.bs.modal', () => {
             if (this.qrScannerStream) {
