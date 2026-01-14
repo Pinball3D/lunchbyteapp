@@ -1,5 +1,5 @@
 const { createApp, watchEffect } = Vue
-document.getElementById("versionText").innerText = "0.4";
+document.getElementById("versionText").innerText = "0.5";
 //classes
 class Friend {
     constructor(data) {
@@ -60,17 +60,7 @@ var mainApp = createApp({
                 this.$refs.deleteDataButton.confirmed = true;
             }
         },
-        scanCode(result) {
-            console.log("Scanned code: " + result);
-            if (!result.startsWith(window.location.href + "?share=true")) {
-                alert("Scanned QR code is not a valid LunchByte schedule!");
-                return false;
-            }
-            $('#addFriendModal').modal('hide');
-            this.user.addFriend(result);
-            return true;
-
-        }
+        scanCode(result) { }
     },
     created() {
         watchEffect(() => {
@@ -93,6 +83,7 @@ var mainApp = createApp({
         });
     },
     mounted() {
+        var vm = this;
         var modal = document.querySelector('#addFriendModal')
         modal.addEventListener('shown.bs.modal', async () => {
             const video = document.getElementById("qrScanner2");
@@ -107,11 +98,15 @@ var mainApp = createApp({
                 console.log("Scanning...");
                 const codes = await detector.detect(video);
                 if (codes.length) {
-                    console.log(this);
-                    if (this.scanCode(codes[0].rawValue)) {
-                        console.log("INSTANT scan:", codes[0].rawValue);
+                    var result = codes[0].rawValue;
+                    console.log("INSTANT scan:", codes[0].rawValue);
+                    if (!result.startsWith(window.location.href + "?share=true")) {
+                        alert("Scanned QR code is not a valid LunchByte schedule!");
                         return;
                     }
+                    $('#addFriendModal').modal('hide');
+                    vm.user.addFriend(result);
+                    return;
                 }
             }
             this.intervalID = setInterval(scanLoop, 500);
