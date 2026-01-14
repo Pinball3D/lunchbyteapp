@@ -1,5 +1,5 @@
 const { createApp, watchEffect } = Vue
-document.getElementById("versionText").innerText = "0.5";
+document.getElementById("versionText").innerText = "0.6";
 //classes
 class Friend {
     constructor(data) {
@@ -165,19 +165,8 @@ if (window.localStorage.getItem('onboarded') == 'true') {
                 if (day < 0 || day > 7) return "side hidden";
                 return "side";
             },
-
-            dayLabel(day) {
-                const days = "ABCDEFGH";
-                return days[day] ? `Day ${days[day]}` : "";
-            },
-
-            setWave(wave) {
-                this.user.schedule["ABCDEFGH"[this.onboardDay]] = wave;
-            },
-
-            getWavePreview(day) {
-                const d = "ABCDEFGH"[day];
-                return d ? `Wave ${this.user.schedule[d] ?? "—"}` : "";
+            isValidDay(day) {
+                return day >= 0 && day <= 7
             }
         }
     }).mount('#onboarding')

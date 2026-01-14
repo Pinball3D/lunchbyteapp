@@ -306,21 +306,20 @@
             </h3>
 
             <transition-group name="onboard" tag="div" class="onboard-carousel" v-if="onboardDay != -1">
-                <div v-for="offset in [-1, 0, 1]" :key="onboardDay + offset" class="onboard-card"
-                    :class="cardClass(onboardDay + offset)">
+                <div v-for="day in [onboardDay-1, onboardDay, onboardDay+1]" :key="day" class="onboard-card"
+                    :class="cardClass(day)">
                     <div class="card shadow-sm text-center">
                         <div class="card-body">
                             <h5 class="mb-2">
                                 <div id="onboardDayLabel" class="text text-primary d-inline">
-                                    {{'ABCDEFGH'[onboardDay+offset]}}</div> day
+                                    {{'ABCDEFGH'[day]}}</div> day ({{day}})
                             </h5>
 
-                            <div v-if-d="offset === 0" class="btn-group w-100">
+                            <div class="btn-group w-100" :name="`wave-group-${day}`">
                                 <div v-for="wave in [1,2,3]" :key="wave">
-                                    <input type="radio" class="btn btn-outline-primary btn-check"
-                                        @click="user.schedule['ABCDEFGH'[onboardDay]] = wave" :value="wave"
-                                        v-model="user.schedule['ABCDEFGH'[onboardDay+offset]]" :id="'wave'+wave">
-                                    <label class="btn btn-outline-primary" :for="'wave'+wave">Wave {{wave}}</label>
+                                    <input type="radio" class="btn btn-outline-primary btn-check" :value="wave"
+                                       v-model="user.schedule['ABCDEFGH'[day]]" :id="'wave-'+wave+'-'+day">
+                                    <label class="btn btn-outline-primary" :for="'wave-'+wave+'-'+day">Wave {{wave}} ({{day}})</label>
                                 </div>
                             </div>
                         </div>
@@ -328,7 +327,7 @@
                 </div>
             </transition-group>
             <div v-if="onboardDay == -1" class="mb-3" id="onboardNameContainer">
-                <label for="basic-url" class="form-label">Your name</label>
+                <label for="onboardName" class="form-label">Your name</label>
                 <input v-model="user.name" type="text" class="form-control" id="onboardName"
                     aria-describedby="onboardNameDesc">
                 <div class="form-text" id="onboardNameDesc">We'll use this later when you share your schedule.</div>
