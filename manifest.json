@@ -1,6 +1,6 @@
 {
 	"name": "LunchByte",
-	"start_url": "https://tracker-office-heavily-says.trycloudflare.com",
+	"start_url": "https://LunchByte.newtownhs.tech",
 	"theme_color": "#ffb800",
 	"display": "standalone",
 	"icons": [
@@ -20,5 +20,7 @@
 	"background_color": "#ffde00",
 	"orientation": "any",
 	"dir": "auto",
-	"lang": "en-US"
+	"lang": "en-US",
+	"handle_links": "preferred"
+
 }
