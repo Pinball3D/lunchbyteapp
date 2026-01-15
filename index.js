@@ -1,5 +1,16 @@
 const { createApp, watchEffect } = Vue
 document.getElementById("versionText").innerText = "0.7";
+
+//variables for encoding and decoding friend code.
+const scheduleToLetter = {
+    "11": "A", "12": "B", "13": "C",
+    "21": "D", "22": "E", "23": "F",
+    "31": "G", "32": "H", "33": "I"
+};
+const letterToSchedule = Object.fromEntries(
+    Object.entries(scheduleToLetter).map(([k, v]) => [v, k])
+);
+
 //classes
 class Friend {
     constructor(data) {
@@ -29,8 +40,19 @@ class User extends Friend {
         return window.location.href + "?share=true&friend=" + JSON.stringify(shared);
         //return "";
     }
+    friendCode() {
+        //Generate a friend code for the user.
+        let schedule = Object.values(this.schedule).join("")
+        let code = "";
+        for (let i = 0; i < 8; i += 2) {
+            const pair = schedule.slice(i, i + 2);
+            code += scheduleToLetter[pair];
+        }
+        return code;
+    }
 }
 
+//Vue apps
 var mainApp = createApp({
     data() {
         return {
@@ -38,7 +60,9 @@ var mainApp = createApp({
             qrScannerStream: null,
             copyLinkText: "Copy Link",
             user: new User(JSON.parse(localStorage.getItem('user'))),
-            intervalID: null
+            intervalID: null,
+            friendCode: null,
+            friendName: null
 
         }
     },
@@ -62,17 +86,25 @@ var mainApp = createApp({
         },
         scanCode(result) { },
         isMobile() {
-            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                return true
-            } else {
-                return false
-            }
+            return (/Android|iPhone|iPad/i.test(navigator.userAgent))
         },
-        addFriendFromLink() {
-            this.user.addFriend(document.getElementById("friendLinkInput").value);
+        addFriendFromCode() {
+            let result = "";
+            for (const char of this.friendCode) {
+                result += letterToSchedule[char];
+            }
+            const letters = "ABCDEFGHI".split("");
+            const schedule = Object.fromEntries(
+                letters.map((letter, i) => [letter, parseInt(result[i], 10)])
+            );
+            this.user.addFriend(window.location.href + "?share=true&friend=" + JSON.stringify({ "name": this.friendName, "schedule": schedule }))
+            this.friendCode = null;
+            this.friendName = null;
+            $('#addFriendModal').modal('hide');
         }
     },
     created() {
+        //save the users data in localStorage whenever modified
         watchEffect(() => {
             localStorage.setItem('user', JSON.stringify(this.user));
         });
@@ -82,6 +114,7 @@ var mainApp = createApp({
             this.user.addFriend(window.location.href);
             window.location.search = "";
         }
+        //load actual school schedule
         fetch("/days.csv").then(response => response.text()).then(data => {
             let lines = data.split("\n");
             lines.forEach(line => {
@@ -110,7 +143,6 @@ var mainApp = createApp({
                     const codes = await detector.detect(video);
                     if (codes.length) {
                         var result = codes[0].rawValue;
-                        console.log("INSTANT scan:", codes[0].rawValue);
                         if (!result.startsWith(window.location.href + "?share=true")) {
                             alert("Scanned QR code is not a valid LunchByte schedule!");
                             return;
