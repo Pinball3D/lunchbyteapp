@@ -1,5 +1,5 @@
 const { createApp, watchEffect } = Vue
-document.getElementById("versionText").innerText = "0.7";
+document.getElementById("versionText").innerText = "0.8";
 
 //variables for encoding and decoding friend code.
 const scheduleToLetter = {
@@ -90,7 +90,12 @@ var mainApp = createApp({
         },
         addFriendFromCode() {
             let result = "";
+            this.friendCode = this.friendCode.toUpperCase();
             for (const char of this.friendCode) {
+                if ("ABCDEFGHI".indexOf(char) < 0) {
+                    alert("That is not a valid friend code.")
+                    return;
+                }
                 result += letterToSchedule[char];
             }
             const letters = "ABCDEFGHI".split("");
