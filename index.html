@@ -151,14 +151,14 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="shareModalLabel">Share Your Schedule!</h1>
+                            <h1 class="text text-dark modal-title fs-5" id="shareModalLabel">Share Your Schedule!</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div id="qrcode"></div>
                             <button class="btn btn-primary" id="copyShareLink"
                                 @click="copyLink">{{copyLinkText}}</button>
-                            <h4 class="text text-primary text-center mt-3">Your Code: {{user.friendCode()}}</h4>
+                            <h4 class="text text-dark text-center mt-3">Your Code: {{user.friendCode()}}</h4>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
