@@ -312,14 +312,14 @@
                         <div class="card-body">
                             <h5 class="mb-2">
                                 <div id="onboardDayLabel" class="text text-primary d-inline">
-                                    {{'ABCDEFGH'[day]}}</div> day ({{day}})
+                                    {{'ABCDEFGH'[day]}}</div> day
                             </h5>
 
                             <div class="btn-group w-100" :name="`wave-group-${day}`">
                                 <div v-for="wave in [1,2,3]" :key="wave">
                                     <input type="radio" class="btn btn-outline-primary btn-check" :value="wave"
                                        v-model="user.schedule['ABCDEFGH'[day]]" :id="'wave-'+wave+'-'+day">
-                                    <label class="btn btn-outline-primary" :for="'wave-'+wave+'-'+day">Wave {{wave}} ({{day}})</label>
+                                    <label class="btn btn-outline-primary" :for="'wave-'+wave+'-'+day">Wave {{wave}}</label>
                                 </div>
                             </div>
                         </div>
