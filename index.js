@@ -1,5 +1,5 @@
 const { createApp, watchEffect } = Vue
-document.getElementById("versionText").innerText = "0.8";
+document.getElementById("versionText").innerText = "0.9";
 
 //variables for encoding and decoding friend code.
 const scheduleToLetter = {
@@ -120,6 +120,10 @@ var mainApp = createApp({
             window.location.search = "";
         }
         //load actual school schedule
+        if(window.location.search.includes("letterDay=")){
+            this.letterDay = window.location.search.split("letterDay=")[1].charAt(0).toUpperCase();
+            return;
+        }
         fetch("/days.csv").then(response => response.text()).then(data => {
             let lines = data.split("\n");
             lines.forEach(line => {
