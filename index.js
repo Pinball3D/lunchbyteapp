@@ -1,5 +1,5 @@
 const { createApp, watchEffect } = Vue
-document.getElementById("versionText").innerText = "0.9";
+document.getElementById("versionText").innerText = "1.0";
 
 //variables for encoding and decoding friend code.
 const scheduleToLetter = {
@@ -62,7 +62,8 @@ var mainApp = createApp({
             user: new User(JSON.parse(localStorage.getItem('user'))),
             intervalID: null,
             friendCode: null,
-            friendName: null
+            friendName: null,
+            editModeDay: "A"
 
         }
     },
@@ -105,7 +106,7 @@ var mainApp = createApp({
             this.user.addFriend(window.location.href + "?share=true&friend=" + JSON.stringify({ "name": this.friendName, "schedule": schedule }))
             this.friendCode = null;
             this.friendName = null;
-            $('#addFriendModal').modal('hide');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('addFriendModal')).hide();
         }
     },
     created() {
@@ -119,7 +120,7 @@ var mainApp = createApp({
             this.user.addFriend(window.location.href);
             window.location.search = "";
         }
-        //load actual school schedule
+        //load actual school schedule or fake schedule from query.
         if(window.location.search.includes("letterDay=")){
             this.letterDay = window.location.search.split("letterDay=")[1].charAt(0).toUpperCase();
             return;
@@ -156,7 +157,8 @@ var mainApp = createApp({
                             alert("Scanned QR code is not a valid LunchByte schedule!");
                             return;
                         }
-                        $('#addFriendModal').modal('hide');
+                        
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('addFriendModal')).hide();
                         vm.user.addFriend(result);
                         return;
                     }
