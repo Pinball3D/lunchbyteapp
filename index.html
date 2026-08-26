@@ -19,112 +19,62 @@
     <meta property="og:title" content="LunchByte - Track Lunch Waves" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.ico" />
+    <link rel="stylesheet" href="index.css">
     <title>LunchByte</title>
-    <style>
-        [v-cloak] {
-            display: none;
-        }
-
-        :not(:has(div[v-cloak])) #loading {
-            display: none;
-        }
-
-        #qrcode {
-            width: 200px;
-            height: 200px;
-            margin-left: 50%;
-            transform: translateX(-50%);
-            aspect-ratio: 1;
-        }
-
-        #copyShareLink {
-            display: block;
-            margin-left: 50%;
-            transform: translateX(-50%);
-            margin-top: 10px;
-        }
-
-        .onboard-carousel {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            perspective: 1000px;
-        }
-
-        .onboard-card {
-            width: 260px;
-            transition:
-                transform 0.95s ease,
-                filter 0.95s ease;
-        }
-
-        .onboard-card.center {
-            transform: scale(1);
-            opacity: 1;
-            filter: none;
-            z-index: 2;
-        }
-
-        .onboard-card.side {
-            transform: scale(0.9);
-            filter: blur(1px);
-            pointer-events: none;
-        }
-
-
-
-        .onboard-card.side.hidden {
-            visibility: hidden;
-        }
-
-        .onboard-leave-active {
-            position: absolute;
-        }
-
-        .card>.card-header {
-            border-bottom: none;
-        }
-
-        @media (max-width: 600px) {
-            .onboard-card.side {
-                display: none;
-            }
-        }
-    </style>
+    <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "y84ne8tuh5");
+</script>
 </head>
 
-<body data-bs-theme="dark">
+<body data-bs-theme="dark" class="min-vh-100">
     <div id="loading">LOADING</div>
     <div v-cloak id="app" class="container">
-        <!--<h1 class="mt-5 d-flex justify-content-center">LunchByte</h1>-->
         <div id="lunchWaveAppContent">
-            <h1 class="mt-5 text-wrap me-2">Good Morning,</br>
-                Today is a <div id="headerDayText" class="text text-nowrap text-primary d-inline">{{ letterDay }}</div>
-                day. <div class="text-nowrap d-inline">You have wave <div id="headerWaveText"
-                        class="text text-primary d-inline">{{
-                        user.wave(letterDay) }}</div>
+            <div id="appTopBar">
+                <div class="d-flex flex-wrap">
+                    <!-- button toolbar -->
+                    <button data-bs-toggle="modal" data-bs-target="#settingsModal" class="btn rounded-circle btn-md bg-secondary mb-3">
+                        <i class="fa fa-gear"></i>
+                    </button>
+                    <button type="button" class="btn ms-auto bg-primary rounded-circle me-2 mb-3" data-bs-toggle="modal"
+                        data-bs-target="#shareModal">
+                        <i class="fa fa-arrow-up-from-bracket"></i>
+                    </button>
+                    <button type="button" class="btn bg-primary rounded-circle mb-3" data-bs-toggle="modal"
+                        data-bs-target="#addFriendModal">
+                        <i class="fa fa-plus"></i>
+                    </button>
                 </div>
-            </h1>
-            <p>Here is your lunch wave for today, aswell as your friends schedules!</p>
-            <!-- button toolbar -->
-            <div class="d-flex flex-wrap">
-                <button type="button" class="btn btn-primary me-2 mb-3" data-bs-toggle="modal"
-                    data-bs-target="#shareModal">
-                    Share Your Schedule
-                </button>
-                <button type="button" class="me-auto btn btn-primary mb-3" data-bs-toggle="modal"
-                    data-bs-target="#addFriendModal">
-                    Add a Friend!
-                </button>
-                <button data-bs-toggle="modal" data-bs-target="#settingsModal" class="btn btn-md btn-secondary mb-3">
-                    <i class="fa fa-gear"></i><span class="d-none d-sm-inline ms-1">Settings</span>
-                </button>
+                <div id="header" class="text-wrap me-2">
+                    <div v-if="!noSchoolToday">
+                        <div></div>Today is
+                        <div class="letter-day-row">
+                            <h1>Letter Day {{ letterDay }}</h1>
+                            <div v-if="showCompactWave" class="wave-summary">Wave {{ user.wave(letterDay) }}</div>
+                        </div>
+                    </div>
+                    <div v-else-if="(today.getDay() == 0 || today.getDay() == 6)">
+                        It's {{today.toLocaleDateString('en-US', { weekday: 'long' })}}. Enjoy the weekend.
+                    </div>
+                    <div v-else>
+                        No School Today
+                        <h1>There is no school today.<br> Enjoy your day off!</h1>
+                    </div>
+                </div>
             </div>
-            <!-- button to share your schedule toggles modal-->
+            <div v-if="!noSchoolToday" ref="todayCard" id="todayCard" class="schedule-trigger" role="button" tabindex="0"
+                @click="openSchedule(user)" @keydown.enter="openSchedule(user)" @keydown.space.prevent="openSchedule(user)">
+                <div class="header">Lunch Wave</div>
+                <div class="wave">{{ user.wave(letterDay) }}</div>
+                <div class="time">11:10 - 11:45 AM</div>
+            </div>
 
 
             <!-- settings popup -->
-
             <div class="modal fade" id="settingsModal" aria-labelledby="settingsModalLabel">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -157,6 +107,27 @@
                             <button ref="deleteDataButton" @click="deleteData" class="me-auto btn btn-danger">Delete
                                 Data</button>
 
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" v-if="scheduleViewer">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="scheduleModalLabel">{{ scheduleModalTitle }}</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="swift-list">
+                                <div v-for="day in cycleDays" :key="day" class="swift-list-row">
+                                    <strong>{{ day }} Day</strong>
+                                    <div class="ms-auto waveCapsule">Wave {{ scheduleViewer.wave(day) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
                         </div>
                     </div>
@@ -196,7 +167,7 @@
                             <video v-if="!isMobile()" id="qrScanner2"
                                 style="width: 100% !important; border-radius: 10px;"></video>
                             <p v-else>Please Open Your Camera App and Scan the QR Code There</p>
-                            <span>~~ OR ~~</span>
+                            <span>-- OR --</span>
                             <!-- enter link -->
                             <h5>Enter Their Name and Friend Code!</h5>
                             <form @submit.prevent="addFriendFromCode">
@@ -220,156 +191,122 @@
                     </div>
                 </div>
             </div>
-            <div class="card mb-3">
-                <div class="card-header">
-                    Today - Wave {{ user.wave(letterDay) }}
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">Friends In Your Wave</h5>
-                    <p class="card-text" id="lunchSharedWith">
-                        {{ function() {
-                        let sharedFriends = user.friends.filter(friend => friend.wave(letterDay) ==
-                        user.wave(letterDay));
-                        if (user.friends.length == 0) {
-                        return "You have not added any friends yet. Click the button above to add some!";
-                        } else if (sharedFriends.length == 0) {
-                        return "No friends share your lunch wave today.";
-                        } else {
-                        return sharedFriends.map(friend => friend.name).join(", ");
-                        }
-                        }() }}
-                    </p>
+            <div id="inYourWave" class="mt-2 me-2" v-if="user.friends.filter(f => f.wave(letterDay) == user.wave(letterDay)).length > 0 && !noSchoolToday">
+                In Your Wave
+                <div class="mt-1 swift-list">
+                    <div v-for="friend in user.friends.filter(f => f.wave(letterDay) == user.wave(letterDay))" :key="friend.name" class="swift-list-row schedule-trigger" role="button" tabindex="0"
+                        @click="openSchedule(friend)" @keydown.enter="openSchedule(friend)" @keydown.space.prevent="openSchedule(friend)">
+                    {{ friend.name }} 
+                    <div class="ms-auto waveCapsule">Wave {{ friend.wave(letterDay) }}</div>
+                    </div>
                 </div>
             </div>
-            <div class="d-grid row-gap-3 mb-3" id="friendsList">
-                <div class="card friendCard" v-for="(friend, index) in user.friends" :key="index">
-                    <div class="card-header">
-                        <div class="d-inline friendName me-3">
-                            {{ friend.name }}
-                            <span class="d-none d-sm-inline">
-                                - Wave
-                                <div class="d-inline friendWaveText">{{ friend.wave(letterDay) }}</div>
-                            </span>
-                            <div class="d-inline friendSharedText" v-if="friend.wave(letterDay) == user.wave(letterDay)"
-                                hidden> - You share lunch
-                                today!</div>
-                        </div>
-
-                        <button type="button" class="btn btn-primary friendScheduleButton" data-bs-toggle="collapse"
-                            :data-bs-target="'#friendScheduleindex'+index">
-                            View Schedule
-                        </button>
-                    </div>
-                    <div :id="'friendScheduleindex'+index" class="collapse">
-                        <div class="card-body">
-                            <h5 class="card-title">Weekly Schedule</h5>
-                            <div class="card-text">
-                                <div class="d-inline me-2" v-for="day in ['A','B','C','D','E','F','G','H']">
-                                    <strong class="d-inline">{{ day }}: </strong> Wave {{ friend.wave(day) }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <button class="friendRemoveButton btn btn-danger" type="button"
-                                @click="user.removeFriend(index)">Remove Friend</button>
-                        </div>
+            <div id="friendsList" class="mt-2 me-2" v-if="user.friends.length > 0 && !noSchoolToday">
+                Friends
+                <div class="mt-1 swift-list">
+                    <div v-for="friend in user.friends" :key="friend.name" class="swift-list-row schedule-trigger" role="button" tabindex="0"
+                        @click="openSchedule(friend)" @keydown.enter="openSchedule(friend)" @keydown.space.prevent="openSchedule(friend)">
+                    {{ friend.name }} 
+                    <div class="ms-auto waveCapsule">Wave {{ friend.wave(letterDay) }}</div>
                     </div>
                 </div>
-                <!-- end template -->
+            </div>
+            <div v-if="user.friends.length == 0 && !noSchoolToday" class="text-center mt-2 me-2">
+                You have no friends added yet. Add a friend to see their lunch wave!
             </div>
         </div>
     </div>
-    <div v-cloak id="onboarding" class="container">
-        <form id="onboardForm" class="mx-auto w-100 w-md-75 d-flex justify-content-center flex-column" hidden>
-            <h1 class="mt-5 d-flex justify-content-center">Welcome to LunchByte!</h1>
-            <div class="container my-5">
-                <div class="row g-4 justify-content-center">
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm text-center">
-                            <div class="card-body">
-                                <div class="fs-1 mb-3">📅</div>
-                                <h5 class="card-title">Track Your Schedule</h5>
-                                <p class="card-text">
-                                    Easily keep track of your lunch wave schedule.
-                                </p>
+    <div v-cloak id="onboarding" class="container h-100">
+        <form id="onboardForm" class="mx-auto my-auto w-100 w-md-75 h-100 d-flex justify-content-center flex-column" hidden>
+            <transition name="onboard-step" mode="out-in">
+                <div v-if="onboardStep == 0" key="welcome" class="onboard-step">
+                    <h1 class="text-center fw-bold mb-4 lunchbyte-title">
+                        Welcome to LunchByte
+                    </h1>
+                    <div class="lunchbyte-features py-2">
+                        <div class="d-flex align-items-center mb-5">
+                            <div class="feature-icon flex-shrink-0">📅</div>
+                            <div class="ms-3">
+                                <div class="fw-bold">Track Your Schedule</div>
+                                <div class="text-body-secondary">Easily keep track of your lunch wave schedule.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-5">
+                            <div class="feature-icon flex-shrink-0">👥</div>
+                            <div class="ms-3">
+                                <div class="fw-bold">Share with Friends</div>
+                                <div class="text-body-secondary">Share your lunch wave schedule with friends.</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon flex-shrink-0">✨</div>
+                            <div class="ms-3">
+                                <div class="fw-bold">Always Know What's Next</div>
+                                <div class="text-body-secondary">Quickly see your lunch wave and schedule wherever you are.</div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm text-center">
-                            <div class="card-body">
-                                <div class="fs-1 mb-3">👥</div>
-                                <h5 class="card-title">Share with Friends</h5>
-                                <p class="card-text">
-                                    Share your lunch wave schedule with friends.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm text-center">
-                            <div class="card-body">
-                                <div class="fs-1 mb-3">⏰</div>
-                                <h5 class="card-title">Match Lunch Waves</h5>
-                                <p class="card-text">
-                                    See which friends share your lunch wave each day.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
-            </div>
-            <center>
-                <p v-if="onboardDay != -1" class="d-flex justify-content-center">Let's set up your lunch wave schedule.
-                    Select your lunch wave for
-                    each day below. </p>
-            </center>
-            <h3 class="d-flex justify-content-center">
-                <div v-if="onboardDay != -1">Select Lunch Wave </div>
-                <div v-if="onboardDay == -1">Enter Your Name</div>
-            </h3>
+                <div v-else-if="onboardStep == 1" key="schedule" id="step2" class="onboard-step">
+                    <center>
+                        <p class="d-flex justify-content-center">Let's set up your lunch wave schedule. Select your lunch wave for each day below.</p>
+                    </center>
+                    <h3 class="d-flex justify-content-center">Select Lunch Wave</h3>
 
-            <transition-group name="onboard" tag="div" class="onboard-carousel" v-if="onboardDay != -1">
-                <div v-for="day in [onboardDay-1, onboardDay, onboardDay+1]" :key="day" class="onboard-card"
-                    :class="cardClass(day)">
-                    <div class="card shadow-sm text-center">
-                        <div class="card-body">
-                            <h5 class="mb-2">
-                                <div id="onboardDayLabel" class="text text-primary d-inline">
-                                    {{'ABCDEFGH'[day]}}</div> day
-                            </h5>
-
-                            <div class="btn-group w-100" :name="`wave-group-${day}`">
-                                <div v-for="wave in [1,2,3]" :key="wave">
-                                    <input type="radio" class="btn btn-outline-primary btn-check" :value="wave"
-                                        v-model="user.schedule['ABCDEFGH'[day]]" :id="'wave-'+wave+'-'+day">
-                                    <label class="btn btn-outline-primary" :for="'wave-'+wave+'-'+day">Wave
-                                        {{wave}}</label>
+                    <transition-group name="onboard" tag="div" class="onboard-carousel onboard-desktop-carousel">
+                        <div v-for="day in [onboardDay-1, onboardDay, onboardDay+1]" :key="day" class="onboard-card"
+                            :class="cardClass(day)">
+                            <div class="card shadow-sm text-center">
+                                <div class="card-body">
+                                    <h5 class="mb-2"><span class="text text-primary">{{ 'ABCDEFGH'[day] }}</span> day</h5>
+                                    <div class="btn-group w-100" :name="`wave-group-${day}`">
+                                        <div v-for="wave in [1,2,3]" :key="wave">
+                                            <input type="radio" class="btn btn-outline-primary btn-check" :value="wave"
+                                                v-model="user.schedule['ABCDEFGH'[day]]" :id="'wave-'+wave+'-'+day">
+                                            <label class="btn btn-outline-primary" :for="'wave-'+wave+'-'+day">Wave {{wave}}</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </transition-group>
+
+                    <transition name="onboard-card" mode="out-in">
+                        <div :key="onboardDay" class="onboard-card onboard-mobile-card center">
+                            <div class="card shadow-sm text-center">
+                                <div class="card-body">
+                                    <h5 class="mb-2"><span class="text text-primary">{{ 'ABCDEFGH'[onboardDay] }}</span> day</h5>
+                                    <div class="btn-group w-100" :name="`mobile-wave-group-${onboardDay}`">
+                                        <div v-for="wave in [1,2,3]" :key="wave">
+                                            <input type="radio" class="btn btn-outline-primary btn-check" :value="wave"
+                                                v-model="user.schedule['ABCDEFGH'[onboardDay]]" :id="'mobile-wave-'+wave+'-'+onboardDay">
+                                            <label class="btn btn-outline-primary" :for="'mobile-wave-'+wave+'-'+onboardDay">Wave {{wave}}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
                 </div>
-            </transition-group>
-            <div v-if="onboardDay == -1" class="mb-3 ms-auto me-auto w-100 w-md-50" id="onboardNameContainer">
-                <label for="onboardName" class="form-label">Your name</label>
-                <input v-model="user.name" type="text" class="form-control" id="onboardName"
-                    aria-describedby="onboardNameDesc" required>
-                <div class="form-text" id="onboardNameDesc">We'll use this later when you share your schedule.</div>
-            </div>
+                <div v-else key="name" class="onboard-step mb-3 ms-auto me-auto w-100 w-md-50" id="onboardNameContainer">
+                    <label for="onboardName" class="form-label">Your name</label>
+                    <input v-model="user.name" type="text" class="form-control" id="onboardName"
+                        aria-describedby="onboardNameDesc" required>
+                    <div class="form-text" id="onboardNameDesc">We'll use this later when you share your schedule.</div>
+                </div>
+            </transition>
             <div class="mt-3 d-block d-flex justify-content-center">
-                <button id="onboardBackBtn" @click="onboardDay--" type="button" class="btn btn-secondary"
-                    :disabled="onboardDay==0 || onboardDay == -1">Back</button>
+                <button id="onboardBackBtn" @click="prevStep" type="button" class="btn btn-secondary rounded-4"
+                    :disabled="onboardStep == 0">Back</button>
                 <div class="w-25"></div>
-                <button id="onboardNextBtn" @click="nextDay" type="button" class="btn btn-primary">
-                    <div v-if="onboardDay != -1">Next</div>
+                <button id="onboardNextBtn" @click="nextStep" type="button" class="btn btn-primary rounded-4">
+                    <div v-if="onboardStep != 2">Next</div>
                     <div v-else>Done</div>
                 </button>
             </div>
         </form>
     </div>
-    <footer class="text-center mt-5 mb-3">
+    <footer class="text-center mt-auto mb-3">
         <small>&copy; 2026 LunchByte V<div class="text d-inline" id="versionText"></div></small>
     </footer>
     <script type="module" src="index.js"></script>

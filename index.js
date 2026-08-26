@@ -1,5 +1,6 @@
 const { createApp, watchEffect } = Vue
-document.getElementById("versionText").innerText = "1.0";
+let todayCardObserver = null;
+document.getElementById("versionText").innerText = "2.0";
 
 //variables for encoding and decoding friend code.
 const scheduleToLetter = {
@@ -63,8 +64,25 @@ var mainApp = createApp({
             intervalID: null,
             friendCode: null,
             friendName: null,
-            editModeDay: "A"
-
+            editModeDay: "A",
+            schedule: [],
+            today: new Date(),
+            debug: window.location.search.includes("debug"),
+            showCompactWave: false,
+            scheduleViewer: null
+        }
+    },
+    computed: {
+        noSchoolToday() {
+            return !this.debug && !this.schedule.map(row => row.split(',')[0]).includes(new Date().toISOString().split('T')[0])
+        },
+        cycleDays() {
+            return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        },
+        scheduleModalTitle() {
+            return this.scheduleViewer === this.user || !this.scheduleViewer?.name
+                ? 'Your Schedule'
+                : `${this.scheduleViewer.name}'s Schedule`;
         }
     },
     methods: {
@@ -107,7 +125,30 @@ var mainApp = createApp({
             this.friendCode = null;
             this.friendName = null;
             bootstrap.Modal.getOrCreateInstance(document.getElementById('addFriendModal')).hide();
-        }
+        },
+        openSchedule(person) {
+            this.scheduleViewer = person;
+            this.$nextTick(() => {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('scheduleModal')).show();
+            });
+        },
+        observeTodayCard() {
+            const todayCard = this.$refs.todayCard;
+
+            if (!todayCard || !('IntersectionObserver' in window)) {
+                this.showCompactWave = false;
+                return;
+            }
+
+            todayCardObserver?.disconnect();
+            todayCardObserver = new IntersectionObserver(([entry]) => {
+                this.showCompactWave = !entry.isIntersecting;
+            }, {
+                rootMargin: '-88px 0px 0px 0px',
+                threshold: 0
+            });
+            todayCardObserver.observe(todayCard);
+        },
     },
     created() {
         //save the users data in localStorage whenever modified
@@ -126,16 +167,17 @@ var mainApp = createApp({
             return;
         }
         fetch("/days.csv").then(response => response.text()).then(data => {
-            let lines = data.split("\n");
-            lines.forEach(line => {
-                if (line.split(",")[0] == new Date().toISOString().split('T')[0]) {
-                    this.letterDay = line.split(",")[1];
+            this.schedule = data.split("\n");
+            this.schedule.forEach(day => {
+                if (day.split(",")[0] == new Date().toISOString().split('T')[0]) {
+                    this.letterDay = day.split(",")[1];
 
                 }
             });
         });
     },
     mounted() {
+        this.$nextTick(() => this.observeTodayCard());
         var vm = this;
         var modal = document.querySelector('#addFriendModal')
         if (!this.isMobile()) {
@@ -177,6 +219,12 @@ var mainApp = createApp({
             height: 200
         }).makeCode(this.user.share());
     },
+    updated() {
+        this.observeTodayCard();
+    },
+    beforeUnmount() {
+        todayCardObserver?.disconnect();
+    }
 
 })
 if (window.localStorage.getItem('onboarded') == 'true') {
@@ -188,19 +236,34 @@ if (window.localStorage.getItem('onboarded') == 'true') {
         data() {
             return {
                 onboardDay: 0,
+                onboardStep: 0,
                 user: new User({ name: '', schedule: { 'A': 1, 'B': 1, 'C': 1, 'D': 1, 'E': 1, 'F': 1, 'G': 1, 'H': 1 }, friends: [] })
             }
         },
         methods: {
-            nextDay() {
-                if (this.onboardDay == 7) {
-                    this.onboardDay = -1;
-                } else if (this.onboardDay == -1) {
+            nextStep() {
+                console.log(this.onboardStep, this.onboardDay);
+                if (this.onboardStep == 0) {
+                    this.onboardStep = 1;
+                } else if(this.onboardDay == 7 && this.onboardStep == 1) {
+                    this.onboardStep = 2;
+                } else if (this.onboardStep == 2) {
                     window.localStorage.setItem('user', JSON.stringify(this.user));
                     window.localStorage.setItem('onboarded', 'true');
                     window.location.reload();
                 } else {
                     this.onboardDay++;
+                }
+            },
+            prevStep() {
+                if (this.onboardStep == 0) {
+                    return;
+                } else if (this.onboardStep == 1 && this.onboardDay == 0) {
+                    this.onboardStep = 0;
+                } else if (this.onboardStep == 2) {
+                    this.onboardStep = 1;
+                } else {
+                    this.onboardDay--;
                 }
             },
             cardClass(day) {
