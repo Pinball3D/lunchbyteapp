@@ -103,11 +103,12 @@
                                 </div>
                             </div>
                         </div>
+                        <small class="text-center">&copy; 2026 LunchByte V<div class="text d-inline" id="versionText"></div></small>
                         <div class="modal-footer">
-                            <button ref="deleteDataButton" @click="deleteData" class="me-auto btn btn-danger">Delete
+                            <button ref="deleteDataButton" @click="deleteData" class="me-auto btn btn-danger rounded-4">Delete
                                 Data</button>
 
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                            <button type="button" class="btn btn-primary rounded-4" data-bs-dismiss="modal">Done</button>
                         </div>
                     </div>
                 </div>
@@ -117,7 +118,7 @@
                     <div class="modal-content" v-if="scheduleViewer">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="scheduleModalLabel">{{ scheduleModalTitle }}</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close rounded-4" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="swift-list">
@@ -128,7 +129,8 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                            <button type="button" class="btn btn-danger rounded-4 me-auto" data-bs-dismiss="modal" v-if="scheduleViewer != user" @click="user.removeFriendBySelf(scheduleViewer)">Delete</button>
+                            <button type="button" class="btn btn-primary rounded-4" data-bs-dismiss="modal">Done</button>
                         </div>
                     </div>
                 </div>
@@ -139,16 +141,16 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h1 class="text text-dark modal-title fs-5" id="shareModalLabel">Share Your Schedule!</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close rounded-4" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div id="qrcode"></div>
-                            <button class="btn btn-primary" id="copyShareLink"
+                            <button class="btn btn-primary rounded-4" id="copyShareLink"
                                 @click="copyLink">{{copyLinkText}}</button>
                             <h4 class="text text-dark text-center mt-3">Your Code: {{user.friendCode()}}</h4>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                            <button type="button" class="btn btn-primary rounded-4" data-bs-dismiss="modal">Done</button>
                         </div>
                     </div>
                 </div>
@@ -160,7 +162,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="addFriendModalLabel">Add a Friend!</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close rounded-4" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body text-center">
                             <h5>Scan a Friend's QR Code from LunchByte!</h5>
@@ -186,7 +188,7 @@
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+                            <button type="button" class="btn btn-primary rounded-4" data-bs-dismiss="modal">Done</button>
                         </div>
                     </div>
                 </div>
@@ -306,9 +308,6 @@
             </div>
         </form>
     </div>
-    <footer class="text-center mt-auto mb-3">
-        <small>&copy; 2026 LunchByte V<div class="text d-inline" id="versionText"></div></small>
-    </footer>
     <script type="module" src="index.js"></script>
     <script type="text/javascript"
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -36,6 +36,12 @@ class User extends Friend {
     removeFriend(index) {
         this.friends.splice(index, 1);
     }
+    removeFriendBySelf(friend) {
+        const index = this.friends.indexOf(friend);
+        if (index !== -1) {
+            this.removeFriend(index);
+        }
+    }
     share() {
         const { friends, ...shared } = this;
         return window.location.href + "?share=true&friend=" + JSON.stringify(shared);
