@@ -70,7 +70,7 @@
                 @click="openSchedule(user)" @keydown.enter="openSchedule(user)" @keydown.space.prevent="openSchedule(user)">
                 <div class="header">Lunch Wave</div>
                 <div class="wave">{{ user.wave(letterDay) }}</div>
-                <div class="time">11:10 - 11:45 AM</div>
+                <div class="time">{{ getLunchTimeToday() }}</div>
             </div>
 
 

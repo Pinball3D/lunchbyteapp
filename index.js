@@ -64,6 +64,7 @@ var mainApp = createApp({
     data() {
         return {
             letterDay: 'A',
+            scheduleDay: null,
             qrScannerStream: null,
             copyLinkText: "Copy Link",
             user: new User(JSON.parse(localStorage.getItem('user'))),
@@ -155,6 +156,22 @@ var mainApp = createApp({
             });
             todayCardObserver.observe(todayCard);
         },
+        getLunchTimeToday() {
+            if (this.scheduleDay) {
+                switch (this.user.wave(this.letterDay)) {
+                    case 1:
+                        if (this.scheduleDay[2] == 4) { return "12:05 - 12:35"} //Advisory
+                        return "11:57 - 12:27";
+                    case 2:
+                        if (this.scheduleDay[2] == 4) { return "12:39 - 1:09" } //Advisory
+                        return "12:31 - 1:01";
+                    case 3:
+                        if (this.scheduleDay[2] == 4) { return "1:13 - 1:43" } //Advisory
+                        return "1:05 - 1:35";
+                }
+            }
+            return "Unknown Time"
+        }
     },
     created() {
         //save the users data in localStorage whenever modified
@@ -177,7 +194,7 @@ var mainApp = createApp({
             this.schedule.forEach(day => {
                 if (day.split(",")[0] == new Date().toISOString().split('T')[0]) {
                     this.letterDay = day.split(",")[1];
-
+                    this.scheduleDay = day.split(",");
                 }
             });
         });
